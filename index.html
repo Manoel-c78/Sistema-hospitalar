@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Karakura - Login e Controle de Acesso</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #334155;
+            margin: 0;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 480px;
+            border: none;
+        }
+
+        .login-header {
+            background-color: #f8fafc;
+            padding: 30px 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .role-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: #ffffff;
+        }
+
+        .role-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+        }
+
+        .role-card.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .btn-login {
+            background-color: #2563eb;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-login:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container px-3">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="login-card mx-auto">
+                    
+                    <!-- Cabeçalho do Login -->
+                    <div class="login-header">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                            <i class="fa-solid fa-hospital-user fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">Hospital Karakura</h4>
+                        <p class="text-muted small mb-0">Selecione seu perfil e efetue login para acessar o sistema.</p>
+                    </div>
+
+                    <!-- Formulário de Autenticação -->
+                    <form id="formLogin" onsubmit="realizarLogin(event)" class="p-4">
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-2">Selecione o seu Perfil *</label>
+                            
+                            <div class="row g-2">
+                                <!-- Paciente -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('paciente')">
+                                        <i class="fa-solid fa-hospital-user text-success fs-3 mb-1"></i>
+                                        <div class="fw-bold small text-dark">Paciente</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">cons-atend.html</small>
+                                    </div>
+                                </div>
+                                <!-- Médico -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('medico')">
+                                        <i class="fa-solid fa-user-doctor text-primary fs-3 mb-1"></i>
+                                        <div class="fw-bold small text-dark">Médico</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Quase tudo exceto T.I.</small>
+                                    </div>
+                                </div>
+                                <!-- Enfermagem -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('enfermagem')">
+                                        <i class="fa-solid fa-bed-pulse text-info fs-3 mb-1"></i>
+                                        <div class="fw-bold small text-dark">Enfermagem</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">enfermagem.html</small>
+                                    </div>
+                                </div>
+                                <!-- Farmácia -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('farmacia')">
+                                        <i class="fa-solid fa-pills text-warning fs-3 mb-1"></i>
+                                        <div class="fw-bold small text-dark">Farmácia</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">farmacia.html</small>
+                                    </div>
+                                </div>
+                                <!-- Almoxarifado -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('almoxarifado')">
+                                        <i class="fa-solid fa-boxes-packing text-indigo fs-3 mb-1" style="color: #4338ca;"></i>
+                                        <div class="fw-bold small text-dark">Almoxarifado</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">almoxarifado.html</small>
+                                    </div>
+                                </div>
+                                <!-- T.I. / Administrador -->
+                                <div class="col-6">
+                                    <div class="role-card p-3 text-center" onclick="selecionarPerfil('ti')">
+                                        <i class="fa-solid fa-user-gear text-danger fs-3 mb-1"></i>
+                                        <div class="fw-bold small text-dark">T.I. / Admin</div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Acesso Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="perfilSelecionado" required>
+                        </div>
+
+                        <!-- Credenciais de Simulação -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Utilizador / Matrícula</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" id="inputUsuario" class="form-control bg-light border-start-0 ps-0" required placeholder="Insira seu identificador...">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary">Palavra-passe</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" id="inputSenha" class="form-control bg-light border-start-0 ps-0" required value="123456" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-login w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>Entrar no Sistema</span>
+                        </button>
+                    </form>
+
+                    <!-- Rodapé do Card -->
+                    <div class="bg-light p-3 text-center border-top text-muted small">
+                        <span>Hospital Karakura &bull; Segurança de Acesso RBAC</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Alerta / Sucesso -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastNotificacao" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">
+                    Autenticado com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de Gestão de Sessão e Regras de Acesso -->
+    <script>
+        function selecionarPerfil(perfil) {
+            document.getElementById('perfilSelecionado').value = perfil;
+            
+            // Remove classe selecionado de todos os cards
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected', 'border-primary', 'bg-light');
+            });
+
+            // Adiciona destaque ao card clicado
+            event.currentTarget.classList.add('selected', 'border-primary');
+            
+            // Preenche valores automáticos de demonstração
+            if(perfil === 'paciente') {
+                document.getElementById('inputUsuario').value = "Mariana Castro (Paciente)";
+            } else if(perfil === 'medico') {
+                document.getElementById('inputUsuario').value = "Dr. Eduardo Silva (CRM)";
+            } else if(perfil === 'enfermagem') {
+                document.getElementById('inputUsuario').value = "Enf. Simone Maria";
+            } else if(perfil === 'farmacia') {
+                document.getElementById('inputUsuario').value = "Carlos Farmacêutico";
+            } else if(perfil === 'almoxarifado') {
+                document.getElementById('inputUsuario').value = "Aux. Almoxarifado";
+            } else if(perfil === 'ti') {
+                document.getElementById('inputUsuario').value = "Eng. Roberto (Admin)";
+            }
+        }
+
+        function realizarLogin(event) {
+            event.preventDefault();
+            const perfil = document.getElementById('perfilSelecionado').value;
+            const usuario = document.getElementById('inputUsuario').value;
+
+            if(!perfil) {
+                mostrarToast("Por favor, selecione um perfil antes de continuar.");
+                return;
+            }
+
+            // Mapeamento estrito de permissões RBAC por perfil
+            let paginasPermitidas = [];
+            let paginaInicial = 'index.html';
+
+            if (perfil === 'paciente') {
+                paginasPermitidas = ['cons-atend.html', 'index.html'];
+                paginaInicial = 'cons-atend.html';
+            } else if (perfil === 'medico') {
+                // Médico tem acesso quase total, EXCETO T.I. (ti.html)
+                paginasPermitidas = ['medicos.html', 'cons-atend.html', 'enfermagem.html', 'farmacia.html', 'almoxarifado.html', 'index.html'];
+                paginaInicial = 'medicos.html';
+            } else if (perfil === 'enfermagem') {
+                paginasPermitidas = ['enfermagem.html', 'cons-atend.html', 'index.html'];
+                paginaInicial = 'enfermagem.html';
+            } else if (perfil === 'farmacia') {
+                paginasPermitidas = ['farmacia.html', 'index.html'];
+                paginaInicial = 'farmacia.html';
+            } else if (perfil === 'almoxarifado') {
+                paginasPermitidas = ['almoxarifado.html', 'index.html'];
+                paginaInicial = 'almoxarifado.html';
+            } else if (perfil === 'ti') {
+                // T.I. / Admin tem acesso total a todas as páginas do sistema
+                paginasPermitidas = ['ti.html', 'medicos.html', 'enfermagem.html', 'farmacia.html', 'almoxarifado.html', 'cons-atend.html', 'index.html'];
+                paginaInicial = 'ti.html';
+            }
+
+            // Salva na sessionStorage as permissões e o perfil logado
+            const dadosSessao = {
+                perfil: perfil,
+                nomeUsuario: usuario,
+                permissoes: paginasPermitidas,
+                logadoEm: new Date().toISOString()
+            };
+            sessionStorage.setItem('careflow_user', JSON.stringify(dadosSessao));
+
+            mostrarToast(`Sessão iniciada como [${perfil.toUpperCase()}]! Redirecionando...`);
+
+            // Redirecionamento de acordo com o perfil
+            setTimeout(() => {
+                window.location.href = paginaInicial;
+            }, 800);
+        }
+
+        function mostrarToast(mensagem) {
+            document.getElementById('toastMsg').innerText = mensagem;
+            const toastEl = document.getElementById('toastNotificacao');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+    </script>
+</body>
+</html>

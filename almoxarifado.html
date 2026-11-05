@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Karakura - Almoxarifado</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Pyodide (Python no Navegador) - URL oficial e estável -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #334155;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .card-stat {
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        }
+
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .badge-clinico {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .bg-status-med {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .bg-status-esp {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .bg-status-warning-vencimento {
+            background-color: #fef3c7;
+            color: #d97706;
+            border: 1px solid #f59e0b;
+        }
+
+        .btn-custom-action {
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .search-input-group {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        /* Efeito de hover para o Dropdown de Estoque */
+        @media (min-width: 992px) {
+            .nav-item.dropdown:hover .dropdown-menu {
+                display: block;
+                margin-top: 0;
+                animation: fadeIn 0.2s ease-in-out;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Principal -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top py-2 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <i class="fa-solid font-bold fa-hospital-user fs-4 text-warning"></i>
+                <span>Karakura <span class="fw-light fs-6 text-white-50">Hospital</span></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="#"><i class="fa-solid fa-stretcher me-1"></i> Marque sua Consulta</a>
+                    </li>
+                    <!-- Dropdown Área Funcionários -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white-50" href="#" id="navbarDropdownFuncionarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-users-gear"></i> Área Funcionários
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownFuncionarios">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="enfermagem.html">
+                                    <i class="fa-solid fa-bed me-1 text-primary"></i> Enfermagem
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                                    <i class="fa-solid fa-user-doctor text-primary"></i> Médicos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="ti.html">
+                                    <i class="fa-solid fa-user-gear text-primary"></i> T.I.
+                                </a>
+                            </li>
+                        </ul>
+                    </li>                    
+                    <!-- Dropdown Estoque -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active text-white" href="#" id="navbarDropdownEstoque" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-boxes-stacked me-1"></i> Estoque
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownEstoque">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                                    <i class="fa-solid fa-pills text-primary"></i> Farmácia
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 active" href="almoxarifado.html">
+                                    <i class="fa-solid fa-boxes-packing text-primary"></i> Almoxarifado
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center text-white gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <div class="fw-semibold small">Enf. Simone Maria</div>
+                        <div class="text-white-50" style="font-size: 0.75rem;">COREN-PE Nº 123.456-ENF • Plantão UTI</div>
+                    </div>
+                    <div class="bg-white rounded-circle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                        SM
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Título + Ação Principal -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Gestão de Materiais - Almoxarifado</h4>
+                <p class="text-muted small mb-0">Monitorização e controle de estoque de materiais em tempo real.</p>
+            </div>
+            <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovoPaciente">
+                <i class="fa-solid fa-boxes-packing"></i>
+                <span class="fw-medium">Cadastrar Material</span>
+            </button>
+        </div>
+
+        <!-- Cards de Métricas / KPIs Hospitalares -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Total de Itens Cadastrados</div>
+                            <h3 class="fw-bold my-1 text-dark" id="statTotalPacientes">0</h3>
+                            <span class="text-success small fw-medium"><i class="fa-solid fa-database me-1"></i>Base SQLite ativa</span>
+                        </div>
+                        <div class="icon-shape bg-primary bg-opacity-10 text-primary">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Materiais Especiais (ESP)</div>
+                            <h3 class="fw-bold my-1 text-indigo" id="statTotalCriticos">0</h3>
+                            <span class="text-primary small fw-medium"><i class="fa-solid fa-star me-1"></i>Alto Custo / Controle</span>
+                        </div>
+                        <div class="icon-shape bg-info bg-opacity-10 text-info">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Próximos a Vencer (&lt; 5 meses)</div>
+                            <h3 class="fw-bold my-1 text-warning" id="statProximosVencer">0</h3>
+                            <span class="text-warning small fw-medium"><i class="fa-solid fa-clock-rotate-left me-1"></i>Atenção ao lote</span>
+                        </div>
+                        <div class="icon-shape bg-warning bg-opacity-10 text-warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Movimentações (Hoje)</div>
+                            <h3 class="fw-bold my-1 text-primary">18</h3>
+                            <span class="text-primary small fw-medium"><i class="fa-solid fa-arrow-trend-up me-1"></i>Entradas / Saídas</span>
+                        </div>
+                        <div class="icon-shape bg-primary bg-opacity-10 text-primary">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Barra de Pesquisa -->
+        <div class="card border-0 shadow-sm mb-4 rounded-3">
+            <div class="card-body p-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5 col-lg-6">
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="inputPesquisa" class="form-control border-start-0 ps-0" placeholder="Buscar por código, descrição ou lote...">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <select id="selectFiltroEstado" class="form-select border-0 bg-light">
+                            <option value="">Todos os Tipos de Materiais</option>
+                            <option value="MED">MED (Medicamentos)</option>
+                            <option value="ESP">ESP (Especial)</option>
+                            <option value="VENCIMENTO_PROXIMO" class="text-warning fw-bold">⚠️ Próximos do Vencimento (&lt; 5 meses)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 text-end">
+                        <button class="btn btn-outline-secondary w-100 border-0 bg-light text-dark d-flex align-items-center justify-content-center gap-2" onclick="limparFiltros()">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Pacientes -->
+        <div class="table-container mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaPacientes">
+                    <thead class="bg-light text-secondary border-bottom">
+                        <tr class="text-uppercase small fw-bold" style="letter-spacing: 0.5px;">
+                            <th class="ps-4 py-3">Códigos</th>
+                            <th class="py-3">Descrição do Material</th>
+                            <th class="py-3">Lote</th>
+                            <th class="py-3">Validade</th>
+                            <th class="py-3">Tipo</th>
+                            <th class="pe-4 py-3 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-spinner fa-spin fs-4 mb-2"></i>
+                                <p class="mb-0">A carregar base de dados SQLite em Python...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mensagem caso a busca não encontre dados -->
+            <div id="semResultados" class="text-center py-5 d-none">
+                <i class="fa-solid fa-boxes-stacked text-muted fs-1 mb-2"></i>
+                <p class="text-muted fw-medium mb-0">Nenhum material encontrado com os filtros aplicados.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Rodapé Limpo e Profissional -->
+    <footer class="bg-white border-top py-3 mt-4">
+        <div class="container-fluid px-4 d-flex flex-column flex-sm-row align-items-center justify-content-between text-muted small">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-hospital text-primary"></i>
+                <span>&copy; 2026 <strong>Kurakura Hospital</strong> &bull; Sistema de Gestão Hospitalar</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-2 mt-sm-0">
+                <span>Versão 2.4.0</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal: Admissão de Novo Paciente -->
+    <div class="modal fade" id="modalNovoPaciente" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing"></i> Cadastrar Novo Material
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formAdmissao" onsubmit="salvarPacienteSQL(event)">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-bold text-secondary">Descrição Completa do Material *</label>
+                                <input type="text" id="cadNome" class="form-control" required placeholder="Ex: Dipirona Sódica 500mg/ml Injetável">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Código *</label>
+                                <input type="text" id="cadLeito" class="form-control" required placeholder="Ex: MAT-101">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Tipo *</label>
+                                <select id="cadEstado" class="form-select" required>
+                                    <option value="MED">MED (Medicamentos)</option>
+                                    <option value="ESP">ESP (Especial)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Código do Lote *</label>
+                                <input type="text" id="cadLote" class="form-control" required placeholder="Ex: LOTE-2026-X99">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Data de Validade *</label>
+                                <input type="text" id="cadValidade" class="form-control" required placeholder="Ex: 24/10/2028">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 px-4 py-3">
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-medium">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar no Banco SQL
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal simulador de Prontuário Eletrônico -->
+    <div class="modal fade" id="modalProntuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-3">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="prontuarioNome">Detalhes do Material</h5>
+                        <span class="badge bg-primary" id="prontuarioLeito">Código: --</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <strong class="d-block mb-1 text-primary">Informações de Estoque</strong>
+                        <p class="mb-0 text-muted small" id="prontuarioDiag">Material cadastrado e validado no estoque do almoxarifado central.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificações -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastNotificacao" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">
+                    Operação realizada com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script Pyodide + Lógica de Integração SQL com Tratamento de Erro Robusto -->
+    <script>
+        let pyodide = null;
+        let listaPacientesCache = [];
+
+        function appendLog(msg) {
+            console.log("[Pyodide SQL Log]:", msg);
+        }
+
+        async function initBackendPython() {
+            appendLog("A carregar runtime Pyodide...");
+            if (typeof loadPyodide === "undefined") {
+                appendLog("Aguardando carregamento da biblioteca Pyodide...");
+                setTimeout(initBackendPython, 600);
+                return;
+            }
+            try {
+                pyodide = await loadPyodide();
+                await pyodide.loadPackage("sqlite3");
+
+                const scriptInit = `
+import sqlite3
+import json
+
+def setup_database():
+    conn = sqlite3.connect('careflow_almoxarifado.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS materiais (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            leito TEXT NOT NULL,
+            nome TEXT NOT NULL,
+            lote TEXT NOT NULL,
+            validade TEXT NOT NULL,
+            estado TEXT NOT NULL
+        )
+    ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM materiais")
+    if cursor.fetchone()[0] == 0:
+        iniciais = [
+            ("MAT-001", "Amoxicilina + Clavulanato 500mg", "LOTE-2026-A12", "24/10/2027", "MED"),
+            ("MAT-002", "Kit Cirúrgico Estéril Descartável", "LT-9823-ESP", "15/05/2028", "ESP"),
+            ("MAT-003", "Seringa Descartável 5ml c/ Agulha", "LT-4410-B", "11/12/2026", "MED"),
+            ("MAT-004", "Cateter Venoso Central Duplo Lúmen", "LOTE-ESP-099", "30/08/2029", "ESP"),
+            ("MAT-005", "Soro Fisiológico 0.9% 500ml", "LOTE-2026-C88", "19/02/2027", "MED")
+        ]
+        cursor.executemany("INSERT INTO materiais (leito, nome, lote, validade, estado) VALUES (?, ?, ?, ?, ?)", iniciais)
+        conn.commit()
+    conn.close()
+
+setup_database()
+"Engine Python & Base SQLite 'careflow_almoxarifado.db' carregadas."
+`;
+                let res = await pyodide.runPythonAsync(scriptInit);
+                appendLog(res);
+
+                carregarDadosSQL();
+
+                document.getElementById('inputPesquisa').addEventListener('keyup', aplicarFiltros);
+                document.getElementById('selectFiltroEstado').addEventListener('change', aplicarFiltros);
+            } catch (err) {
+                console.error("Erro ao inicializar Pyodide:", err);
+            }
+        }
+
+        async function carregarDadosSQL() {
+            if (!pyodide) return;
+
+            const scriptFetch = `
+import sqlite3
+import json
+
+conn = sqlite3.connect('careflow_almoxarifado.db')
+cursor = conn.cursor()
+cursor.execute("SELECT id, leito, nome, lote, validade, estado FROM materiais ORDER BY id DESC")
+rows = cursor.fetchall()
+conn.close()
+
+result = []
+for r in rows:
+    result.append({
+        "id": r[0], "leito": r[1], "nome": r[2], "lote": r[3],
+        "validade": r[4], "estado": r[5]
+    })
+json.dumps(result)
+`;
+            let rawJson = await pyodide.runPythonAsync(scriptFetch);
+            listaPacientesCache = JSON.parse(rawJson);
+            renderizarTabela(listaPacientesCache);
+            atualizarContadores(listaPacientesCache);
+            appendLog(`SELECT executado. ${listaPacientesCache.length} registos carregados.`);
+        }
+
+        // Função utilitária para verificar validade (< 5 meses a partir de 05/11/2026)
+        function validarPrazoVencimento(dataStr) {
+            try {
+                const partes = dataStr.split('/');
+                if (partes.length !== 3) return false;
+                const dia = parseInt(partes[0], 10);
+                const mes = parseInt(partes[1], 10) - 1;
+                const ano = parseInt(partes[2], 10);
+                const dataValidade = new Date(ano, mes, dia);
+                const hoje = new Date(2026, 10, 5); // 05/11/2026
+
+                const diffMeses = (dataValidade.getFullYear() - hoje.getFullYear()) * 12 + (dataValidade.getMonth() - hoje.getMonth());
+                return diffMeses >= 0 && diffMeses < 5;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function atualizarContadores(dados) {
+            document.getElementById('statTotalPacientes').innerText = dados.length;
+            const totalCriticos = dados.filter(m => m.estado === 'ESP').length;
+            document.getElementById('statTotalCriticos').innerText = totalCriticos;
+
+            const proximosVencer = dados.filter(m => validarPrazoVencimento(m.validade)).length;
+            document.getElementById('statProximosVencer').innerText = proximosVencer;
+        }
+
+        function renderizarTabela(dados) {
+            const corpo = document.getElementById('corpoTabela');
+            const semRes = document.getElementById('semResultados');
+            corpo.innerHTML = '';
+
+            if (dados.length === 0) {
+                semRes.classList.remove('d-none');
+                return;
+            } else {
+                semRes.classList.add('d-none');
+            }
+
+            dados.forEach(material => {
+                const tr = document.createElement('tr');
+                
+                let badgeClass = "bg-status-med";
+                if(material.estado === 'ESP') {
+                    badgeClass = "bg-status-esp";
+                }
+
+                const isProximoVencer = validarPrazoVencimento(material.validade);
+                let badgeValidadeHTML = material.validade;
+                if (isProximoVencer) {
+                    badgeValidadeHTML = `<span class="badge bg-status-warning-vencimento"><i class="fa-solid fa-triangle-exclamation me-1"></i>${material.validade} (&lt; 5m)</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="ps-4">
+                        <span class="fw-bold text-primary d-block">${material.leito}</span>
+                        <small class="text-muted">ID: #${material.id}</small>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${material.nome}</div>
+                    </td>
+                    <td><span class="font-monospace text-secondary fw-semibold">${material.lote}</span></td>
+                    <td>${badgeValidadeHTML}</td>
+                    <td>
+                        <span class="badge ${badgeClass} badge-clinico">${material.estado}</span>
+                    </td>
+                    <td class="pe-4 text-end">
+                        <div class="btn-group gap-1">
+                            <button class="btn btn-sm btn-outline-primary btn-custom-action" title="Detalhes" onclick="abrirProntuario(${material.id})">
+                                <i class="fa-solid fa-box-open me-1"></i> Detalhes
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-custom-action" title="Dar Baixa" onclick="darAltaSQL(${material.id}, '${material.nome}')">
+                                <i class="fa-solid fa-trash me-1"></i> Baixa
+                            </button>
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        function aplicarFiltros() {
+            const termo = document.getElementById('inputPesquisa').value.toLowerCase();
+            const estado = document.getElementById('selectFiltroEstado').value;
+
+            const filtrados = listaPacientesCache.filter(p => {
+                const atendeNomeLeito = p.nome.toLowerCase().includes(termo) || 
+                                       p.leito.toLowerCase().includes(termo) ||
+                                       p.lote.toLowerCase().includes(termo);
+                
+                let atendeEstado = true;
+                if (estado === "VENCIMENTO_PROXIMO") {
+                    atendeEstado = validarPrazoVencimento(p.validade);
+                } else if (estado !== "") {
+                    atendeEstado = p.estado === estado;
+                }
+
+                return atendeNomeLeito && atendeEstado;
+            });
+
+            renderizarTabela(filtrados);
+        }
+
+        function limparFiltros() {
+            document.getElementById('inputPesquisa').value = '';
+            document.getElementById('selectFiltroEstado').value = '';
+            renderizarTabela(listaPacientesCache);
+        }
+
+        async function salvarPacienteSQL(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('cadNome').value;
+            const leito = document.getElementById('cadLeito').value;
+            const estado = document.getElementById('cadEstado').value;
+            const lote = document.getElementById('cadLote').value;
+            const validade = document.getElementById('cadValidade').value;
+
+            const scriptInsert = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_almoxarifado.db')
+cursor = conn.cursor()
+cursor.execute("INSERT INTO materiais (leito, nome, lote, validade, estado) VALUES (?, ?, ?, ?, ?)",
+               ('${leito}', '${nome}', '${lote}', '${validade}', '${estado}'))
+conn.commit()
+conn.close()
+"INSERT executado no SQLite para ${nome}"
+`;
+            let res = await pyodide.runPythonAsync(scriptInsert);
+            appendLog(res);
+
+            const modalEl = document.getElementById('modalNovoPaciente');
+            const modalBS = bootstrap.Modal.getInstance(modalEl);
+            modalBS.hide();
+            document.getElementById('formAdmissao').reset();
+
+            carregarDadosSQL();
+            mostrarToast(`Material ${nome} gravado no banco de dados com sucesso!`);
+        }
+
+        async function darAltaSQL(id, nome) {
+            if(confirm(`Confirmar baixa de estoque para o material: ${nome}?`)) {
+                const scriptDelete = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_almoxarifado.db')
+cursor = conn.cursor()
+cursor.execute("DELETE FROM materiais WHERE id = ?", (${id},))
+conn.commit()
+conn.close()
+"DELETE executado no SQLite id #${id}"
+`;
+                let res = await pyodide.runPythonAsync(scriptDelete);
+                appendLog(res);
+                carregarDadosSQL();
+                mostrarToast(`Baixa efetuada. Registro de ${nome} removido do estoque.`);
+            }
+        }
+
+        function abrirProntuario(id) {
+            const material = listaPacientesCache.find(p => p.id === id);
+            if(material) {
+                document.getElementById('prontuarioNome').innerText = `Detalhes: ${material.nome}`;
+                document.getElementById('prontuarioLeito').innerText = `Código: ${material.leito} (${material.estado})`;
+
+                const modalProntuario = new bootstrap.Modal(document.getElementById('modalProntuario'));
+                modalProntuario.show();
+            }
+        }
+
+        function mostrarToast(mensagem) {
+            document.getElementById('toastMsg').innerText = mensagem;
+            const toastEl = document.getElementById('toastNotificacao');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        window.onload = initBackendPython;
+    </script>
+</body>
+</html>

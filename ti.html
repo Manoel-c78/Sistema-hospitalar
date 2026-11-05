@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Karakura - Gestão de T.I. e Funcionários</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Pyodide (Python no Navegador) -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #334155;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .card-stat {
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        }
+
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .badge-clinico {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* Cores baseadas nos setores (Verde p/ Almoxarifado, Azul p/ Enfermagem, Roxo p/ Médicos, Laranja p/ TI) */
+        .bg-cargo-almoxarifado {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        .bg-cargo-enfermagem {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        .bg-cargo-medicos {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+        }
+        .bg-cargo-ti {
+            background-color: #ffedd5;
+            color: #c2410c;
+        }
+
+        .btn-custom-action {
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .search-input-group {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        /* Efeito de hover para o Dropdown */
+        @media (min-width: 992px) {
+            .nav-item.dropdown:hover .dropdown-menu {
+                display: block;
+                margin-top: 0;
+                animation: fadeIn 0.2s ease-in-out;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Principal -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top py-2 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <i class="fa-solid font-bold fa-hospital-user fs-4 text-warning"></i>
+                <span>Karakura <span class="fw-light fs-6 text-white-50">Hospital</span></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="cons-atend.html"><i class="fa-solid fa-stretcher me-1"></i> Marque sua Consulta</a>
+                    </li>
+                    <!-- Dropdown Área Funcionários -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active text-white" href="#" id="navbarDropdownFuncionarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-users-gear"></i> Área Funcionários
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownFuncionarios">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="enfermagem.html">
+                                    <i class="fa-solid fa-bed me-1 text-primary"></i> Enfermagem
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="medicos.html">
+                                    <i class="fa-solid fa-user-doctor text-primary"></i> Médicos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 active" href="ti.html">
+                                    <i class="fa-solid fa-user-gear text-primary"></i> T.I. / Gestão
+                                </a>
+                            </li>
+                        </ul>
+                    </li>                    
+                    <!-- Dropdown Estoque -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white-50" href="#" id="navbarDropdownEstoque" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-boxes-stacked me-1"></i> Estoque
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownEstoque">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="farmacia.html">
+                                    <i class="fa-solid fa-pills text-primary"></i> Farmácia
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="almoxarifado.html">
+                                    <i class="fa-solid fa-boxes-packing text-primary"></i> Almoxarifado
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center text-white gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <div class="fw-semibold small">Eng. Roberto T.I.</div>
+                        <div class="text-white-50" style="font-size: 0.75rem;">Administrador de Sistemas</div>
+                    </div>
+                    <div class="bg-white rounded-circle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                        RT
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Título + Ação Principal -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Gestão de Funcionários - T.I. e Acessos</h4>
+                <p class="text-muted small mb-0">Controle central de colaboradores, setores, cargos e permissões de sistema.</p>
+            </div>
+            <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovoFuncionario">
+                <i class="fa-solid fa-user-plus"></i>
+                <span class="fw-medium">Cadastrar Funcionários</span>
+            </button>
+        </div>
+
+        <!-- Cards de Métricas -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Total Funcionários</div>
+                            <h3 class="fw-bold my-1 text-dark" id="statTotalFuncionarios">0</h3>
+                            <span class="text-success small fw-medium"><i class="fa-solid fa-circle-check me-1"></i>Ativos no Banco SQL</span>
+                        </div>
+                        <div class="icon-shape bg-primary bg-opacity-10 text-primary">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Setor Almoxarifado</div>
+                            <h3 class="fw-bold my-1 text-success" id="statAlmoxarifado">0</h3>
+                            <span class="text-success small fw-medium"><i class="fa-solid fa-boxes-packing me-1"></i>Colaboradores</span>
+                        </div>
+                        <div class="icon-shape bg-success bg-opacity-10 text-success">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Setor Enfermagem</div>
+                            <h3 class="fw-bold my-1 text-info" id="statEnfermagem">0</h3>
+                            <span class="text-info small fw-medium"><i class="fa-solid fa-bed-pulse me-1"></i>Colaboradores</span>
+                        </div>
+                        <div class="icon-shape bg-info bg-opacity-10 text-info">
+                            <i class="fa-solid fa-user-nurse"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Acessos Administrador</div>
+                            <h3 class="fw-bold my-1 text-purple" id="statAdmins">2</h3>
+                            <span class="text-primary small fw-medium"><i class="fa-solid fa-shield-halved me-1"></i>Nível Total</span>
+                        </div>
+                        <div class="icon-shape bg-warning bg-opacity-10 text-warning">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Barra de Pesquisa -->
+        <div class="card border-0 shadow-sm mb-4 rounded-3">
+            <div class="card-body p-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5 col-lg-6">
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="inputPesquisa" class="form-control border-start-0 ps-0" placeholder="Buscar por nome, ID ou cargo...">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <select id="selectFiltroSetor" class="form-select border-0 bg-light">
+                            <option value="">Todos os Setores</option>
+                            <option value="Almoxarifado">Almoxarifado</option>
+                            <option value="Enfermagem">Enfermagem</option>
+                            <option value="Médicos">Médicos</option>
+                            <option value="Tecnologia da Informação">Tecnologia da Informação (T.I.)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 text-end">
+                        <button class="btn btn-outline-secondary w-100 border-0 bg-light text-dark d-flex align-items-center justify-content-center gap-2" onclick="limparFiltros()">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Funcionários -->
+        <div class="table-container mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaFuncionarios">
+                    <thead class="bg-light text-secondary border-bottom">
+                        <tr class="text-uppercase small fw-bold" style="letter-spacing: 0.5px;">
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Funcionário</th>
+                            <th class="py-3">Idade / Gênero</th>
+                            <th class="py-3">Data Integração</th>
+                            <th class="py-3">Setor</th>
+                            <th class="py-3">Cargo</th>
+                            <th class="py-3">Acesso Sistema</th>
+                            <th class="pe-4 py-3 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-spinner fa-spin fs-4 mb-2"></i>
+                                <p class="mb-0">A carregar base de dados SQLite em Python...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mensagem caso a busca não encontre dados -->
+            <div id="semResultados" class="text-center py-5 d-none">
+                <i class="fa-solid fa-user-slash text-muted fs-1 mb-2"></i>
+                <p class="text-muted fw-medium mb-0">Nenhum funcionário encontrado com os filtros aplicados.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-top py-3 mt-4">
+        <div class="container-fluid px-4 d-flex flex-column flex-sm-row align-items-center justify-content-between text-muted small">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-hospital text-primary"></i>
+                <span>&copy; 2026 <strong>Kurakura Hospital</strong> &bull; Sistema de Gestão Hospitalar</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-2 mt-sm-0">
+                <span>Versão 2.4.0</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal: Cadastrar Novo Funcionário -->
+    <div class="modal fade" id="modalNovoFuncionario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Cadastro de Novo Funcionário
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formAdmissao" onsubmit="salvarFuncionarioSQL(event)">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-bold text-secondary">Nome Completo *</label>
+                                <input type="text" id="cadNome" class="form-control" required placeholder="Ex: Carlos Alberto Santos">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Idade *</label>
+                                <input type="number" id="cadIdade" class="form-control" required min="18" max="90" placeholder="Ex: 35">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Gênero *</label>
+                                <select id="cadGenero" class="form-select" required>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Setor *</label>
+                                <select id="cadSetor" class="form-select" required onchange="atualizarCargosPorSetor()">
+                                    <option value="">Selecione o Setor</option>
+                                    <option value="Almoxarifado">Almoxarifado</option>
+                                    <option value="Enfermagem">Enfermagem</option>
+                                    <option value="Médicos">Médicos</option>
+                                    <option value="Tecnologia da Informação">Tecnologia da Informação (T.I.)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Cargo *</label>
+                                <select id="cadCargo" class="form-select" required>
+                                    <option value="">Selecione o Setor primeiro</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Nível de Acesso Inicial *</label>
+                                <select id="cadAcesso" class="form-select" required>
+                                    <option value="Padrão">Padrão</option>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Restrito">Restrito</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary">Observações / Perfil Técnico</label>
+                                <textarea id="cadObs" class="form-control" rows="2" placeholder="Informações adicionais..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 px-4 py-3">
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-medium">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar no Banco SQL
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Informações do Funcionário (Edição) -->
+    <div class="modal fade" id="modalInformacoes" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-3">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="infoModalTitulo">Informações do Funcionário</h5>
+                        <span class="badge bg-primary" id="infoModalMatricula">ID: --</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formEdicaoInfo" onsubmit="salvarEdicaoInformacoes(event)">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="infoId">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label small fw-bold text-secondary">Nome Completo</label>
+                                <input type="text" id="infoNome" class="form-control" required>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Idade</label>
+                                <input type="number" id="infoIdade" class="form-control" required>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-secondary">Gênero</label>
+                                <select id="infoGenero" class="form-select" required>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Setor Atual</label>
+                                <input type="text" id="infoSetor" class="form-control" readonly disabled>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Cargo Atual</label>
+                                <input type="text" id="infoCargo" class="form-control" readonly disabled>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary">Observações / Perfil</label>
+                                <textarea id="infoObs" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 px-4 py-3">
+                        <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Fechar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Acessos e Promoções -->
+    <div class="modal fade" id="modalAcessos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white py-3">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="acessosModalTitulo">Acessos e Promoções</h5>
+                        <span class="badge bg-white text-success" id="acessosMatricula">ID: --</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formAcessosPromocoes" onsubmit="salvarAcessosPromocoes(event)">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="acessosId">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Funcionário</label>
+                            <input type="text" id="acessosNome" class="form-control bg-light" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Alterar Setor / Promoção</label>
+                            <select id="acessosSetor" class="form-select" required onchange="atualizarCargosPromocao()">
+                                <option value="Almoxarifado">Almoxarifado</option>
+                                <option value="Enfermagem">Enfermagem</option>
+                                <option value="Médicos">Médicos</option>
+                                <option value="Tecnologia da Informação">Tecnologia da Informação (T.I.)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Alterar Cargo</label>
+                            <select id="acessosCargo" class="form-select" required>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Nível de Acesso ao Sistema</label>
+                            <select id="acessosNivel" class="form-select" required>
+                                <option value="Padrão">Padrão</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Restrito">Restrito</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 px-4 py-3">
+                        <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success px-4 rounded-3 fw-medium">
+                            <i class="fa-solid fa-check me-1"></i> Aplicar Promoção / Acesso
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificações -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastNotificacao" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">
+                    Operação realizada com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de Gestão SQL e Lógica Dinâmica -->
+    <script>
+        let pyodide = null;
+        let listaFuncionariosCache = [];
+
+        // Mapeamento de Cargos por Setor exigidos
+        const cargosPorSetor = {
+            "Almoxarifado": ["Auxiliar de Suprimentos", "Almoxarife"],
+            "Enfermagem": ["Enfermeiro(a) Chefe", "Técnico(a) de Enfermagem"],
+            "Médicos": ["Médico Plantonista", "Cirurgião(ã)"],
+            "Tecnologia da Informação": ["Analista de Sistemas", "Técnico de Suporte"]
+        };
+
+        function atualizarCargosPorSetor() {
+            const setorSel = document.getElementById('cadSetor').value;
+            const cargoSelect = document.getElementById('cadCargo');
+            cargoSelect.innerHTML = "";
+
+            if (cargosPorSetor[setorSel]) {
+                cargosPorSetor[setorSel].forEach(cargo => {
+                    const opt = document.createElement('option');
+                    opt.value = cargo;
+                    opt.innerText = cargo;
+                    cargoSelect.appendChild(opt);
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "Selecione o Setor primeiro";
+                cargoSelect.appendChild(opt);
+            }
+        }
+
+        function atualizarCargosPromocao() {
+            const setorSel = document.getElementById('acessosSetor').value;
+            const cargoSelect = document.getElementById('acessosCargo');
+            cargoSelect.innerHTML = "";
+
+            if (cargosPorSetor[setorSel]) {
+                cargosPorSetor[setorSel].forEach(cargo => {
+                    const opt = document.createElement('option');
+                    opt.value = cargo;
+                    opt.innerText = cargo;
+                    cargoSelect.appendChild(opt);
+                });
+            }
+        }
+
+        async function initBackendPython() {
+            if (typeof loadPyodide === "undefined") {
+                setTimeout(initBackendPython, 600);
+                return;
+            }
+            try {
+                pyodide = await loadPyodide();
+                await pyodide.loadPackage("sqlite3");
+
+                const scriptInit = `
+import sqlite3
+import json
+
+def setup_database():
+    conn = sqlite3.connect('careflow_ti.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS funcionarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            idade INTEGER NOT NULL,
+            genero TEXT NOT NULL,
+            dataAdm TEXT NOT NULL,
+            setor TEXT NOT NULL,
+            cargo TEXT NOT NULL,
+            acesso TEXT NOT NULL,
+            obs TEXT
+        )
+    ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM funcionarios")
+    if cursor.fetchone()[0] == 0:
+        iniciais = [
+            ("Carlos Alberto Santos", 42, "M", "24/10/2026", "Almoxarifado", "Almoxarife", "Padrão", "Responsável pelo almoxarifado central."),
+            ("Ana Lucia Ferreira", 35, "F", "25/10/2026", "Enfermagem", "Enfermeiro(a) Chefe", "Administrador", "Chefia de plantão da UTI."),
+            ("Roberto Mendes", 51, "M", "23/10/2026", "Médicos", "Médico Plantonista", "Restrito", "Especialista em clínica médica."),
+            ("Juliana Paes de Oliveira", 29, "F", "26/10/2026", "Almoxarifado", "Auxiliar de Suprimentos", "Padrão", "Controle de estoque de farmácia."),
+            ("Fernando Henrique Lima", 38, "M", "22/10/2026", "Tecnologia da Informação", "Analista de Sistemas", "Administrador", "Gestão de servidores e banco SQL.")
+        ]
+        cursor.executemany("INSERT INTO funcionarios (nome, idade, genero, dataAdm, setor, cargo, acesso, obs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", iniciais)
+        conn.commit()
+    conn.close()
+
+setup_database()
+"Engine Python & Base SQLite 'careflow_ti.db' carregadas."
+`;
+                await pyodide.runPythonAsync(scriptInit);
+                carregarDadosSQL();
+
+                document.getElementById('inputPesquisa').addEventListener('keyup', aplicarFiltros);
+                document.getElementById('selectFiltroSetor').addEventListener('change', aplicarFiltros);
+            } catch (err) {
+                console.error("Erro ao inicializar Pyodide:", err);
+            }
+        }
+
+        async function carregarDadosSQL() {
+            if (!pyodide) return;
+
+            const scriptFetch = `
+import sqlite3
+import json
+
+conn = sqlite3.connect('careflow_ti.db')
+cursor = conn.cursor()
+cursor.execute("SELECT id, nome, idade, genero, dataAdm, setor, cargo, acesso, obs FROM funcionarios ORDER BY id DESC")
+rows = cursor.fetchall()
+conn.close()
+
+result = []
+for r in rows:
+    result.append({
+        "id": r[0], "nome": r[1], "idade": r[2], "genero": r[3],
+        "dataAdm": r[4], "setor": r[5], "cargo": r[6], "acesso": r[7], "obs": r[8] or ""
+    })
+json.dumps(result)
+`;
+            let rawJson = await pyodide.runPythonAsync(scriptFetch);
+            listaFuncionariosCache = JSON.parse(rawJson);
+            renderizarTabela(listaFuncionariosCache);
+            atualizarContadores(listaFuncionariosCache);
+        }
+
+        function atualizarContadores(dados) {
+            document.getElementById('statTotalFuncionarios').innerText = dados.length;
+            const almox = dados.filter(f => f.setor === 'Almoxarifado').length;
+            const enf = dados.filter(f => f.setor === 'Enfermagem').length;
+            const admins = dados.filter(f => f.acesso === 'Administrador').length;
+            document.getElementById('statAlmoxarifado').innerText = almox;
+            document.getElementById('statEnfermagem').innerText = enf;
+            document.getElementById('statAdmins').innerText = admins;
+        }
+
+        function renderizarTabela(dados) {
+            const corpo = document.getElementById('corpoTabela');
+            const semRes = document.getElementById('semResultados');
+            corpo.innerHTML = '';
+
+            if (dados.length === 0) {
+                semRes.classList.remove('d-none');
+                return;
+            } else {
+                semRes.classList.add('d-none');
+            }
+
+            dados.forEach(func => {
+                const tr = document.createElement('tr');
+                
+                // Define cor do badge do cargo com base no setor correspondente
+                let badgeClass = "bg-cargo-almoxarifado";
+                if(func.setor === 'Enfermagem') badgeClass = "bg-cargo-enfermagem";
+                if(func.setor === 'Médicos') badgeClass = "bg-cargo-medicos";
+                if(func.setor === 'Tecnologia da Informação') badgeClass = "bg-cargo-ti";
+
+                tr.innerHTML = `
+                    <td class="ps-4">
+                        <span class="fw-bold text-primary">#${func.id}</span>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${func.nome}</div>
+                    </td>
+                    <td>${func.idade} anos (${func.genero})</td>
+                    <td>${func.dataAdm}</td>
+                    <td>${func.setor}</td>
+                    <td>
+                        <span class="badge ${badgeClass} badge-clinico">${func.cargo}</span>
+                    </td>
+                    <td><span class="badge bg-secondary text-white">${func.acesso}</span></td>
+                    <td class="pe-4 text-end">
+                        <div class="btn-group gap-1">
+                            <button class="btn btn-sm btn-outline-primary btn-custom-action" title="Informações e Edição" onclick="abrirInformacoes(${func.id})">
+                                <i class="fa-solid fa-address-card me-1"></i> Informações
+                            </button>
+                            <button class="btn btn-sm btn-outline-success btn-custom-action" title="Acessos e Promoções" onclick="abrirAcessos(${func.id})">
+                                <i class="fa-solid fa-key me-1"></i> Acessos e Promoções
+                            </button>
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        function aplicarFiltros() {
+            const termo = document.getElementById('inputPesquisa').value.toLowerCase();
+            const setor = document.getElementById('selectFiltroSetor').value;
+
+            const filtrados = listaFuncionariosCache.filter(f => {
+                const atendeTermo = f.nome.toLowerCase().includes(termo) || 
+                                     f.cargo.toLowerCase().includes(termo) ||
+                                     f.setor.toLowerCase().includes(termo);
+                const atendeSetor = setor === "" || f.setor === setor;
+
+                return atendeTermo && atendeSetor;
+            });
+
+            renderizarTabela(filtrados);
+        }
+
+        function limparFiltros() {
+            document.getElementById('inputPesquisa').value = '';
+            document.getElementById('selectFiltroSetor').value = '';
+            renderizarTabela(listaFuncionariosCache);
+        }
+
+        async function salvarFuncionarioSQL(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('cadNome').value;
+            const idade = document.getElementById('cadIdade').value;
+            const genero = document.getElementById('cadGenero').value;
+            const setor = document.getElementById('cadSetor').value;
+            const cargo = document.getElementById('cadCargo').value;
+            const acesso = document.getElementById('cadAcesso').value;
+            const obs = document.getElementById('cadObs').value;
+            const dataAdm = new Date().toLocaleDateString('pt-BR');
+
+            const scriptInsert = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_ti.db')
+cursor = conn.cursor()
+cursor.execute("INSERT INTO funcionarios (nome, idade, genero, dataAdm, setor, cargo, acesso, obs) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+               ('${nome}', ${idade}, '${genero}', '${dataAdm}', '${setor}', '${cargo}', '${acesso}', '${obs}'))
+conn.commit()
+conn.close()
+"INSERT executado para ${nome}"
+`;
+            await pyodide.runPythonAsync(scriptInsert);
+
+            const modalEl = document.getElementById('modalNovoFuncionario');
+            bootstrap.Modal.getInstance(modalEl).hide();
+            document.getElementById('formAdmissao').reset();
+
+            carregarDadosSQL();
+            mostrarToast(`Funcionário ${nome} cadastrado com sucesso!`);
+        }
+
+        function abrirInformacoes(id) {
+            const func = listaFuncionariosCache.find(f => f.id === id);
+            if(func) {
+                document.getElementById('infoModalTitulo').innerText = `Informações: ${func.nome}`;
+                document.getElementById('infoModalMatricula').innerText = `ID: #${func.id}`;
+                document.getElementById('infoId').value = func.id;
+                document.getElementById('infoNome').value = func.nome;
+                document.getElementById('infoIdade').value = func.idade;
+                document.getElementById('infoGenero').value = func.genero;
+                document.getElementById('infoSetor').value = func.setor;
+                document.getElementById('infoCargo').value = func.cargo;
+                document.getElementById('infoObs').value = func.obs;
+
+                new bootstrap.Modal(document.getElementById('modalInformacoes')).show();
+            }
+        }
+
+        async function salvarEdicaoInformacoes(event) {
+            event.preventDefault();
+            const id = document.getElementById('infoId').value;
+            const nome = document.getElementById('infoNome').value;
+            const idade = document.getElementById('infoIdade').value;
+            const genero = document.getElementById('infoGenero').value;
+            const obs = document.getElementById('infoObs').value;
+
+            const scriptUpdate = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_ti.db')
+cursor = conn.cursor()
+cursor.execute("UPDATE funcionarios SET nome = ?, idade = ?, genero = ?, obs = ? WHERE id = ?",
+               ('${nome}', ${idade}, '${genero}', '${obs}', ${id}))
+conn.commit()
+conn.close()
+"UPDATE informações executado"
+`;
+            await pyodide.runPythonAsync(scriptUpdate);
+            bootstrap.Modal.getInstance(document.getElementById('modalInformacoes')).hide();
+            carregarDadosSQL();
+            mostrarToast(`Informações de ${nome} atualizadas com sucesso!`);
+        }
+
+        function abrirAcessos(id) {
+            const func = listaFuncionariosCache.find(f => f.id === id);
+            if(func) {
+                document.getElementById('acessosModalTitulo').innerText = `Acessos e Promoções: ${func.nome}`;
+                document.getElementById('acessosMatricula').innerText = `ID: #${func.id}`;
+                document.getElementById('acessosId').value = func.id;
+                document.getElementById('acessosNome').value = func.nome;
+                document.getElementById('acessosSetor').value = func.setor;
+                
+                atualizarCargosPromocao();
+                document.getElementById('acessosCargo').value = func.cargo;
+                document.getElementById('acessosNivel').value = func.acesso;
+
+                new bootstrap.Modal(document.getElementById('modalAcessos')).show();
+            }
+        }
+
+        async function salvarAcessosPromocoes(event) {
+            event.preventDefault();
+            const id = document.getElementById('acessosId').value;
+            const setor = document.getElementById('acessosSetor').value;
+            const cargo = document.getElementById('acessosCargo').value;
+            const acesso = document.getElementById('acessosNivel').value;
+
+            const scriptPromo = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_ti.db')
+cursor = conn.cursor()
+cursor.execute("UPDATE funcionarios SET setor = ?, cargo = ?, acesso = ? WHERE id = ?",
+               ('${setor}', '${cargo}', '${acesso}', ${id}))
+conn.commit()
+conn.close()
+"Promoção e Acesso atualizados"
+`;
+            await pyodide.runPythonAsync(scriptPromo);
+            bootstrap.Modal.getInstance(document.getElementById('modalAcessos')).hide();
+            carregarDadosSQL();
+            mostrarToast("Acessos e cargo atualizados com sucesso!");
+        }
+
+        function mostrarToast(mensagem) {
+            document.getElementById('toastMsg').innerText = mensagem;
+            const toastEl = document.getElementById('toastNotificacao');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        window.onload = initBackendPython;
+    </script>
+</body>
+</html>

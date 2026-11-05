@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Karakura - Área do Médico: Gestão de Consultas</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Pyodide (Python no Navegador) -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #334155;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .card-stat {
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        }
+
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .badge-clinico {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .bg-status-agendado {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .bg-status-em-atendimento {
+            background-color: #fef9c3;
+            color: #a16207;
+        }
+
+        .bg-status-concluido {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .bg-status-urgente {
+            background-color: #ffe4e6;
+            color: #e11d48;
+        }
+
+        .btn-custom-action {
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .search-input-group {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        /* Efeito de hover para o Dropdown */
+        @media (min-width: 992px) {
+            .nav-item.dropdown:hover .dropdown-menu {
+                display: block;
+                margin-top: 0;
+                animation: fadeIn 0.2s ease-in-out;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Principal (Perspectiva do Médico) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top py-2 shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <i class="fa-solid font-bold fa-hospital-user fs-4 text-warning"></i>
+                <span>Karakura <span class="fw-light fs-6 text-white-50">Área do Médico</span></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="cons-atend.html"><i class="fa-solid fa-user-doctor me-1"></i> Marque sua Consulta</a>
+                    </li>
+                    <!-- Dropdown Área Funcionários -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white-50" href="#" id="navbarDropdownFuncionarios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-users-gear"></i> Área Funcionários
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownFuncionarios">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="enfermagem.html">
+                                    <i class="fa-solid fa-bed me-1 text-primary"></i> Enfermagem
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="medicos.html">
+                                    <i class="fa-solid fa-user-doctor text-primary"></i> Médicos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="ti.html">
+                                    <i class="fa-solid fa-user-gear text-primary"></i> T.I.
+                                </a>
+                            </li>
+                        </ul>
+                    </li>                    
+                    <!-- Dropdown Estoque -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white-50" href="#" id="navbarDropdownEstoque" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-boxes-stacked me-1"></i> Estoque
+                        </a>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="navbarDropdownEstoque">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="farmacia.html">
+                                    <i class="fa-solid fa-pills text-primary"></i> Farmácia
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="almoxarifado.html">
+                                    <i class="fa-solid fa-boxes-packing text-primary"></i> Almoxarifado
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center text-white gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <div class="fw-semibold small" id="medicoLogadoNome">Dr. Eduardo Silva</div>
+                        <div class="text-white-50" style="font-size: 0.75rem;">CRM-PE 45.123 • Clínica Geral</div>
+                    </div>
+                    <div class="bg-white rounded-circle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                        ES
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Título + Ação Principal do Médico -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Painel do Médico: Consultas e Prontuários</h4>
+                <p class="text-muted small mb-0">Visualize suas consultas agendadas, realize atendimentos, adicione receitas e gerencie sua agenda clínica.</p>
+            </div>
+            <button class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovaConsultaMedico">
+                <i class="fa-solid fa-calendar-plus"></i>
+                <span class="fw-medium">Incluir na Minha Agenda</span>
+            </button>
+        </div>
+
+        <!-- Cards de Métricas / Resumo do Médico -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Agendadas Comigo</div>
+                            <h3 class="fw-bold my-1 text-primary" id="statAgendadas">0</h3>
+                            <span class="text-primary small fw-medium"><i class="fa-solid fa-clock me-1"></i>Aguardando atendimento</span>
+                        </div>
+                        <div class="icon-shape bg-primary bg-opacity-10 text-primary">
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Consultas Realizadas</div>
+                            <h3 class="fw-bold my-1 text-success" id="statConcluidos">0</h3>
+                            <span class="text-success small fw-medium"><i class="fa-solid fa-circle-check me-1"></i>Histórico concluído</span>
+                        </div>
+                        <div class="icon-shape bg-success bg-opacity-10 text-success">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Total na Minha Agenda</div>
+                            <h3 class="fw-bold my-1 text-info" id="statTotalMinhas">0</h3>
+                            <span class="text-info small fw-medium"><i class="fa-solid fa-folder-closed me-1"></i>Total de registros</span>
+                        </div>
+                        <div class="icon-shape bg-info bg-opacity-10 text-info">
+                            <i class="fa-solid fa-user-doctor"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card card-stat shadow-sm h-100 p-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Consultas Urgentes</div>
+                            <h3 class="fw-bold my-1 text-danger" id="statUrgentes">0</h3>
+                            <span class="text-danger small fw-medium"><i class="fa-solid fa-triangle-exclamation me-1"></i>Atendimentos prioritários</span>
+                        </div>
+                        <div class="icon-shape bg-danger bg-opacity-10 text-danger">
+                            <i class="fa-solid fa-hospital-user"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros e Pesquisa de Consultas do Médico -->
+        <div class="card border-0 shadow-sm mb-4 rounded-3">
+            <div class="card-body p-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5 col-lg-6">
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="inputPesquisa" class="form-control border-start-0 ps-0" placeholder="Buscar por paciente, motivo, data ou especialidade...">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <select id="selectFiltroStatus" class="form-select border-0 bg-light">
+                            <option value="">Todos os Status</option>
+                            <option value="Agendado">Agendados</option>
+                            <option value="Em Atendimento">Em Atendimento</option>
+                            <option value="Urgente">Consultas Urgentes</option>
+                            <option value="Concluído">Histórico (Concluídos)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 text-end">
+                        <button class="btn btn-outline-secondary w-100 border-0 bg-light text-dark d-flex align-items-center justify-content-center gap-2" onclick="limparFiltros()">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Consultas do Médico -->
+        <div class="table-container mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaAtendimentos">
+                    <thead class="bg-light text-secondary border-bottom">
+                        <tr class="text-uppercase small fw-bold" style="letter-spacing: 0.5px;">
+                            <th class="ps-4 py-3">Data / Horário / Senha</th>
+                            <th class="py-3">Paciente</th>
+                            <th class="py-3">Médico</th>
+                            <th class="py-3">Especialidade</th>
+                            <th class="py-3">Status</th>
+                            <th class="pe-4 py-3 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-spinner fa-spin fs-4 mb-2"></i>
+                                <p class="mb-0">A carregar base SQLite do médico...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="semResultados" class="text-center py-5 d-none">
+                <i class="fa-solid fa-folder-open text-muted fs-1 mb-2"></i>
+                <p class="text-muted fw-medium mb-0">Nenhuma consulta encontrada para este médico.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-top py-3 mt-4">
+        <div class="container-fluid px-4 d-flex flex-column flex-sm-row align-items-center justify-content-between text-muted small">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-hospital text-primary"></i>
+                <span>&copy; 2026 <strong>Karakura Hospital</strong> &bull; Painel Médico</span>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-2 mt-sm-0">
+                <span>Plantão Médico Ativo: Dr. Eduardo Silva</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal: Médico Agendando Nova Consulta -->
+    <div class="modal fade" id="modalNovaConsultaMedico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-calendar-plus"></i> Adicionar Paciente / Horário na Agenda
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formNovaConsulta" onsubmit="salvarConsultaSQL(event)">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Nome do Paciente *</label>
+                                <input type="text" id="cadPaciente" class="form-control" required placeholder="Nome do paciente completo">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold text-secondary">Data da Consulta *</label>
+                                <input type="date" id="cadData" class="form-control" required>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold text-secondary">Horário *</label>
+                                <input type="time" id="cadHora" class="form-control" required value="10:30">
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Tipo Atendimento *</label>
+                                <select id="cadPrioridade" class="form-select" required>
+                                    <option value="Normal">Rotina (Normal)</option>
+                                    <option value="Preferencial">Preferencial</option>
+                                    <option value="Urgente">Atendimento Urgente</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Especialidade Desejada *</label>
+                                <select id="cadEspecialidade" class="form-select" required>
+                                    <option value="Clínica Geral">Clínica Geral</option>
+                                    <option value="Coração">Cardiologia (Coração)</option>
+                                    <option value="Psicólogos">Psicologia</option>
+                                    <option value="Fisioterapia">Fisioterapia</option>
+                                    <option value="Pediatria">Pediatria</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Médico Responsável *</label>
+                                <input type="text" id="cadMedico" class="form-control" required value="Dr. Eduardo Silva">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary">Sintomas / Motivo do Agendamento</label>
+                                <textarea id="cadQueixa" class="form-control" rows="2" placeholder="Descreva brevemente o motivo da consulta..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0 px-4 py-3">
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-medium">
+                            <i class="fa-solid fa-check-circle me-1"></i> Confirmar Agendamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes, Prontuário e Prescrição do Médico -->
+    <div class="modal fade" id="modalAtendimentoMedico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-3">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="atendModalPaciente">Prontuário e Consulta</h5>
+                        <span class="badge bg-primary" id="atendModalSenha">Senha: --</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="atendId">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Especialidade / Médico</small>
+                            <strong id="atendInfoMedico">--</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-muted d-block">Status Atual</small>
+                            <span class="badge bg-secondary" id="atendInfoStatus">--</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <strong class="text-secondary small d-block mb-1">Motivo / Queixa do Paciente:</strong>
+                        <p class="mb-0 text-dark fw-medium" id="atendInfoQueixa">--</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary"><i class="fa-solid fa-file-medical text-primary me-1"></i> Prontuário / Receita / Recomendações Médicas:</label>
+                        <textarea id="atendProntuarioInput" class="form-control" rows="4" placeholder="Insira o diagnóstico, conduta clínica e prescrição de medicamentos..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 px-4 py-3 justify-content-between">
+                    <button type="button" class="btn btn-outline-danger rounded-3 fw-bold" onclick="cancelarConsultaSQL()">
+                        <i class="fa-solid fa-xmark me-1"></i> Desmarcar Consulta
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-warning rounded-3 fw-bold" onclick="salvarProntuarioSQL('Em Atendimento')">
+                            <i class="fa-solid fa-stethoscope me-1"></i> Em Atendimento
+                        </button>
+                        <button type="button" class="btn btn-success rounded-3 fw-bold" onclick="salvarProntuarioSQL('Concluído')">
+                            <i class="fa-solid fa-circle-check me-1"></i> Concluir & Receitar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificações -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastNotificacao" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">
+                    Operação realizada com sucesso!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script Pyodide + Lógica da Área do Médico em Python SQLite -->
+    <script>
+        let pyodide = null;
+        let listaAtendimentosCache = [];
+        const medicoLogado = "Dr. Eduardo Silva";
+
+        async function initBackendPython() {
+            if (typeof loadPyodide === "undefined") {
+                setTimeout(initBackendPython, 500);
+                return;
+            }
+            try {
+                pyodide = await loadPyodide();
+                await pyodide.loadPackage("sqlite3");
+
+                const scriptInit = `
+import sqlite3
+import json
+
+def setup_database():
+    conn = sqlite3.connect('careflow_atendimentos.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS consultas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            data TEXT NOT NULL DEFAULT '2026-11-06',
+            hora TEXT NOT NULL,
+            paciente TEXT NOT NULL,
+            medico TEXT NOT NULL,
+            especialidade TEXT NOT NULL,
+            status TEXT NOT NULL,
+            queixa TEXT,
+            prontuario TEXT
+        )
+    ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM consultas")
+    if cursor.fetchone()[0] == 0:
+        iniciais = [
+            ("2026-11-06", "08:30", "Mariana Castro", "Dr. Eduardo Silva", "Clínica Geral", "Em Atendimento", "Febre alta e dores musculares", "Paciente orientado a manter repouso e hidratação constante."),
+            ("2026-11-07", "09:00", "Carlos Eduardo Lima", "Dra. Ana Lucia", "Coração", "Urgente", "Dor torácica atípica", "Encaminhado para ECG emergencial."),
+            ("2026-11-10", "09:30", "Fernanda Souza", "Dr. Eduardo Silva", "Clínica Geral", "Agendado", "Consulta de retorno pré-agendada", ""),
+            ("2026-10-15", "10:00", "Mariana Castro", "Dra. Ana Lucia", "Coração", "Concluído", "Check-up de rotina cardiológico", "Exames normais. Manter atividades físicas leves."),
+            ("2026-11-12", "10:15", "Lucas Martins", "Dr. Eduardo Silva", "Fisioterapia", "Agendado", "Dores lombares crônicas", "")
+        ]
+        cursor.executemany("INSERT INTO consultas (data, hora, paciente, medico, especialidade, status, queixa, prontuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", iniciais)
+        conn.commit()
+    conn.close()
+
+setup_database()
+"Engine Python SQLite 'careflow_atendimentos.db' inicializada para a Área do Médico."
+`;
+                await pyodide.runPythonAsync(scriptInit);
+                carregarDadosSQL();
+
+                // Define data atual padrão no formulário
+                const hoje = new Date().toISOString().split('T')[0];
+                document.getElementById('cadData').value = hoje;
+
+                document.getElementById('inputPesquisa').addEventListener('keyup', aplicarFiltros);
+                document.getElementById('selectFiltroStatus').addEventListener('change', aplicarFiltros);
+            } catch (err) {
+                console.error("Erro ao inicializar Pyodide:", err);
+            }
+        }
+
+        async function carregarDadosSQL() {
+            if (!pyodide) return;
+
+            // Filtro direto na consulta SQL para retornar apenas as consultas do médico logado
+            const scriptFetch = `
+import sqlite3
+import json
+
+conn = sqlite3.connect('careflow_atendimentos.db')
+cursor = conn.cursor()
+cursor.execute("SELECT id, data, hora, paciente, medico, especialidade, status, queixa, prontuario FROM consultas WHERE medico = ? ORDER BY id DESC", ('${medicoLogado}',))
+rows = cursor.fetchall()
+conn.close()
+
+result = []
+for r in rows:
+    result.append({
+        "id": r[0], "data": r[1] or "2026-11-06", "hora": r[2], "paciente": r[3], "medico": r[4],
+        "especialidade": r[5], "status": r[6], "queixa": r[7] or "", "prontuario": r[8] or ""
+    })
+json.dumps(result)
+`;
+            let rawJson = await pyodide.runPythonAsync(scriptFetch);
+            listaAtendimentosCache = JSON.parse(rawJson);
+            renderizarTabela(listaAtendimentosCache);
+            atualizarContadores(listaAtendimentosCache);
+        }
+
+        function atualizarContadores(dados) {
+            document.getElementById('statAgendadas').innerText = dados.filter(a => a.status === 'Agendado' || a.status === 'Em Atendimento').length;
+            document.getElementById('statConcluidos').innerText = dados.filter(a => a.status === 'Concluído').length;
+            document.getElementById('statTotalMinhas').innerText = dados.length;
+            document.getElementById('statUrgentes').innerText = dados.filter(a => a.status === 'Urgente').length;
+        }
+
+        function renderizarTabela(dados) {
+            const corpo = document.getElementById('corpoTabela');
+            const semRes = document.getElementById('semResultados');
+            corpo.innerHTML = '';
+
+            if (dados.length === 0) {
+                semRes.classList.remove('d-none');
+                return;
+            } else {
+                semRes.classList.add('d-none');
+            }
+
+            dados.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                let badgeClass = "bg-status-agendado";
+                if(item.status === 'Em Atendimento') badgeClass = "bg-status-em-atendimento";
+                if(item.status === 'Concluído') badgeClass = "bg-status-concluido";
+                if(item.status === 'Urgente') badgeClass = "bg-status-urgente";
+
+                tr.innerHTML = `
+                    <td class="ps-4">
+                        <span class="fw-bold text-dark d-block"><i class="fa-regular fa-calendar-days me-1 text-primary"></i>${item.data} às ${item.hora}</span>
+                        <small class="text-muted">Senha #${item.id}</small>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${item.paciente}</div>
+                    </td>
+                    <td>${item.medico}</td>
+                    <td><span class="fw-semibold text-secondary">${item.especialidade}</span></td>
+                    <td>
+                        <span class="badge ${badgeClass} badge-clinico">${item.status}</span>
+                    </td>
+                    <td class="pe-4 text-end">
+                        <div class="btn-group gap-1">
+                            <button class="btn btn-sm btn-outline-primary btn-custom-action" title="Atender / Prontuário" onclick="abrirAtendimentoMedico(${item.id})">
+                                <i class="fa-solid fa-stethoscope me-1"></i> Atender
+                            </button>
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        function aplicarFiltros() {
+            const termo = document.getElementById('inputPesquisa').value.toLowerCase();
+            const status = document.getElementById('selectFiltroStatus').value;
+
+            const filtrados = listaAtendimentosCache.filter(a => {
+                const atendeTermo = a.paciente.toLowerCase().includes(termo) || 
+                                     a.medico.toLowerCase().includes(termo) ||
+                                     a.especialidade.toLowerCase().includes(termo) ||
+                                     a.data.toLowerCase().includes(termo) ||
+                                     a.queixa.toLowerCase().includes(termo);
+                const atendeStatus = status === "" || a.status === status;
+
+                return atendeTermo && atendeStatus;
+            });
+
+            renderizarTabela(filtrados);
+        }
+
+        function limparFiltros() {
+            document.getElementById('inputPesquisa').value = '';
+            document.getElementById('selectFiltroStatus').value = '';
+            renderizarTabela(listaAtendimentosCache);
+        }
+
+        async function salvarConsultaSQL(event) {
+            event.preventDefault();
+
+            const paciente = document.getElementById('cadPaciente').value;
+            const data = document.getElementById('cadData').value;
+            const hora = document.getElementById('cadHora').value;
+            const prioridade = document.getElementById('cadPrioridade').value;
+            const especialidade = document.getElementById('cadEspecialidade').value;
+            const medico = document.getElementById('cadMedico').value;
+            const queixa = document.getElementById('cadQueixa').value;
+
+            const statusInicial = prioridade === 'Urgente' ? 'Urgente' : 'Agendado';
+
+            const scriptInsert = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_atendimentos.db')
+cursor = conn.cursor()
+cursor.execute("INSERT INTO consultas (data, hora, paciente, medico, especialidade, status, queixa, prontuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+               ('${data}', '${hora}', '${paciente}', '${medico}', '${especialidade}', '${statusInicial}', '${queixa}', ''))
+conn.commit()
+conn.close()
+"Agendamento confirmado pelo médico."
+`;
+            await pyodide.runPythonAsync(scriptInsert);
+
+            const modalEl = document.getElementById('modalNovaConsultaMedico');
+            bootstrap.Modal.getInstance(modalEl).hide();
+            document.getElementById('formNovaConsulta').reset();
+
+            carregarDadosSQL();
+            mostrarToast(`Consulta agendada para ${paciente} no dia ${data}!`);
+        }
+
+        function abrirAtendimentoMedico(id) {
+            const item = listaAtendimentosCache.find(a => a.id === id);
+            if(item) {
+                document.getElementById('atendId').value = item.id;
+                document.getElementById('atendModalPaciente').innerText = `Paciente: ${item.paciente}`;
+                document.getElementById('atendModalSenha').innerText = `Data: ${item.data} | Senha: #${item.id}`;
+                document.getElementById('atendInfoMedico').innerText = `${item.especialidade} • ${item.medico}`;
+                document.getElementById('atendInfoStatus').innerText = item.status;
+                document.getElementById('atendInfoQueixa').innerText = item.queixa || "Nenhum sintoma informado.";
+                document.getElementById('atendProntuarioInput').value = item.prontuario || "";
+
+                new bootstrap.Modal(document.getElementById('modalAtendimentoMedico')).show();
+            }
+        }
+
+        async function salvarProntuarioSQL(novoStatus) {
+            const id = document.getElementById('atendId').value;
+            const prontuario = document.getElementById('atendProntuarioInput').value;
+
+            const scriptUpdate = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_atendimentos.db')
+cursor = conn.cursor()
+cursor.execute("UPDATE consultas SET status = ?, prontuario = ? WHERE id = ?",
+               ('${novoStatus}', '${prontuario}', ${id}))
+conn.commit()
+conn.close()
+"Prontuário atualizado"
+`;
+            await pyodide.runPythonAsync(scriptUpdate);
+            bootstrap.Modal.getInstance(document.getElementById('modalAtendimentoMedico')).hide();
+            carregarDadosSQL();
+            mostrarToast(`Atendimento atualizado para "${novoStatus}" com sucesso!`);
+        }
+
+        async function cancelarConsultaSQL() {
+            const id = document.getElementById('atendId').value;
+            if (confirm("Tem certeza que deseja cancelar / desmarcar esta consulta da sua agenda?")) {
+                const scriptDel = `
+import sqlite3
+
+conn = sqlite3.connect('careflow_atendimentos.db')
+cursor = conn.cursor()
+cursor.execute("DELETE FROM consultas WHERE id = ?", (${id},))
+conn.commit()
+conn.close()
+"Consulta desmarcada pelo médico"
+`;
+                await pyodide.runPythonAsync(scriptDel);
+                bootstrap.Modal.getInstance(document.getElementById('modalAtendimentoMedico')).hide();
+                carregarDadosSQL();
+                mostrarToast("Consulta desmarcada com sucesso.");
+            }
+        }
+
+        function mostrarToast(mensagem) {
+            document.getElementById('toastMsg').innerText = mensagem;
+            const toastEl = document.getElementById('toastNotificacao');
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        window.onload = initBackendPython;
+    </script>
+</body>
+</html>
